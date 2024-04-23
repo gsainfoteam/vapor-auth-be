@@ -4,6 +4,7 @@ import {
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaModule } from 'src/prisma/prisma.module';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { UserRepository } from 'src/user/user.repository';
 import { testConfigModule } from 'test/config/testConfig.module';
 import { v4 as uuidv4 } from 'uuid';
@@ -11,6 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
 describe('UserRepository', () => {
   const uuid = uuidv4();
   let repository: UserRepository;
+  let prismaService: PrismaService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -19,6 +21,7 @@ describe('UserRepository', () => {
     }).compile();
 
     repository = module.get<UserRepository>(UserRepository);
+    prismaService = module.get<PrismaService>(PrismaService);
   });
 
   it('should be defined', () => {
@@ -52,6 +55,14 @@ describe('UserRepository', () => {
     it('should return null if user not found', async () => {
       const user = await repository.getUserByUuid({ uuid: uuidv4() });
       expect(user).toBeNull();
+    });
+  });
+
+  afterAll(async () => {
+    await prismaService.user.deleteMany({
+      where: {
+        uuid,
+      },
     });
   });
 });
